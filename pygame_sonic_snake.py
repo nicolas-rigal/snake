@@ -1,0 +1,214 @@
+# importing libraries
+import pygame
+import time
+import random
+from pygame import mixer
+
+snake_speed = 15
+
+# Window size
+window_x = 400
+window_y = 300
+
+# defining colors
+black = pygame.Color(0, 0, 0)
+white = pygame.Color(255, 255, 255)
+red = pygame.Color(255, 0, 0)
+green = pygame.Color(0, 255, 0)
+blue = pygame.Color(0, 0, 255)
+#Sonic-snake
+sonic = pygame.Color(0,125,198)
+#anneaux
+goldenyellow = pygame.Color(255,184,28)
+#damier
+light_green = (43,184,0)
+dark_green = (18,79,0)
+darckbrown = (64,32,0)
+
+# Initialising pygame
+pygame.init()
+
+# Initialise game window
+pygame.display.set_caption('Sonic the hedgehog')
+game_window = pygame.display.set_mode((window_x, window_y))
+img = pygame.image.load('sonic.png')
+pygame.display.set_icon(img)
+
+# FPS (frames per second) controller
+fps = pygame.time.Clock()
+
+# Starting the mixer
+mixer.init()
+  
+# Loading the song
+mixer.music.load("musique/Sonic.mp3")
+  
+# Setting the volume
+mixer.music.set_volume(1)
+  
+# Start playing the song
+mixer.music.play(-1)
+
+# Dimensions des cases du damier
+square_size = 10
+
+# defining snake default position
+snake_position = [100, 50]
+
+# defining first 4 blocks of snake body
+snake_body = [[100, 50],
+			[90, 50],
+			[80, 50],
+			[70, 50]
+			]
+# fruit position
+fruit_position = [random.randrange(1, (window_x//10)) * 10,
+				random.randrange(1, (window_y//10)) * 10]
+
+fruit_spawn = True
+
+# setting default snake direction towards
+# right
+direction = 'RIGHT'
+change_to = direction
+
+# initial score
+score = 0
+
+# displaying Score function
+def show_score(choice, color, font, size):
+
+	# creating font object score_font
+	score_font = pygame.font.SysFont(font, size)
+	
+	# create the display surface object
+	# score_surface
+	score_surface = score_font.render('Score : ' + str(score), True, color)
+	
+	# create a rectangular object for the text
+	# surface object
+	score_rect = score_surface.get_rect()
+	
+	# displaying text
+	game_window.blit(score_surface, score_rect)
+
+# game over function
+def game_over():
+
+	# creating font object my_font
+	my_font = pygame.font.SysFont('times new roman', 50)
+	
+	# creating a text surface on which text
+	# will be drawn
+	game_over_surface = my_font.render(
+		'Your Score is : ' + str(score), True, red)
+	
+	# create a rectangular object for the text
+	# surface object
+	game_over_rect = game_over_surface.get_rect()
+	
+	# setting position of the text
+	game_over_rect.midtop = (window_x/2, window_y/4)
+	
+	# blit will draw the text on screen
+	game_window.blit(game_over_surface, game_over_rect)
+	pygame.display.flip()
+	
+	# after 2 seconds we will quit the program
+	time.sleep(2)
+	
+	# deactivating pygame library
+	pygame.quit()
+	
+	# quit the program
+	quit()
+
+
+#--------------------------------------------------------------------------------#
+#--------------------------------boucle de jeu-----------------------------------#
+#--------------------------------------------------------------------------------#
+
+runnig = True
+# Main Function
+while runnig:
+    for x in range(0, window_x, square_size):
+        for y in range(0, window_y, square_size):
+            rect = pygame.Rect(x, y, square_size, square_size)
+            color = light_green if (x + y) % (square_size*2) < square_size else dark_green
+            pygame.draw.rect(game_window, color, rect)
+	
+        # handling key events
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    change_to = 'UP'
+                if event.key == pygame.K_DOWN:
+                    change_to = 'DOWN'
+                if event.key == pygame.K_LEFT:
+                    change_to = 'LEFT'
+                if event.key == pygame.K_RIGHT:
+                    change_to = 'RIGHT'
+
+        # If two keys pressed simultaneously
+        # we don't want snake to move into two
+        # directions simultaneously
+        if change_to == 'UP' and direction != 'DOWN':
+            direction = 'UP'
+        if change_to == 'DOWN' and direction != 'UP':
+            direction = 'DOWN'
+        if change_to == 'LEFT' and direction != 'RIGHT':
+            direction = 'LEFT'
+        if change_to == 'RIGHT' and direction != 'LEFT':
+            direction = 'RIGHT'
+
+        # Moving the snake
+        if direction == 'UP':
+            snake_position[1] -= 10
+        if direction == 'DOWN':
+            snake_position[1] += 10
+        if direction == 'LEFT':
+            snake_position[0] -= 10
+        if direction == 'RIGHT':
+            snake_position[0] += 10
+
+        # Snake body growing mechanism
+        # if fruits and snakes collide then scores
+        # will be incremented by 10
+        snake_body.insert(0, list(snake_position))
+        if snake_position[0] == fruit_position[0] and snake_position[1] == fruit_position[1]:
+            score += 10
+            fruit_spawn = False
+        else:
+            snake_body.pop()
+            
+        if not fruit_spawn:
+            fruit_position = [random.randrange(1, (window_x//10)) * 10,
+                            random.randrange(1, (window_y//10)) * 10]
+            
+        fruit_spawn = True
+    
+        for pos in snake_body:
+            pygame.draw.rect(game_window, sonic,
+                            pygame.Rect(pos[0], pos[1], 10, 10))
+        pygame.draw.rect(game_window, goldenyellow, pygame.Rect(
+            fruit_position[0], fruit_position[1], 10, 10))
+
+        # Game Over conditions
+        if snake_position[0] < 0 or snake_position[0] > window_x-10:
+            game_over()
+        if snake_position[1] < 0 or snake_position[1] > window_y-10:
+            game_over()
+
+        # Touching the snake body
+        for block in snake_body[1:]:
+            if snake_position[0] == block[0] and snake_position[1] == block[1]:
+                game_over()
+
+        # displaying score countinuously
+        show_score(1, white, 'arial', 20)
+
+        # Refresh game screen
+        pygame.display.update()
+
+        # Frame Per Second /Refresh Rate
+        fps.tick(snake_speed)
