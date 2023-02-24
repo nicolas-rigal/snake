@@ -52,6 +52,13 @@ mixer.music.play(-1)
 # Dimensions des cases du damier
 square_size = 10
 
+def draw_damier():
+    for x in range(0, window_x, square_size):
+        for y in range(0, window_y, square_size):
+            rect = pygame.Rect(x, y, square_size, square_size)
+            color = light_green if (x + y) % (square_size*2) < square_size else dark_green
+            pygame.draw.rect(game_window, color, rect)
+
 # defining snake default position
 snake_position = [100, 50]
 
@@ -131,12 +138,7 @@ def game_over():
 runnig = True
 # Main Function
 while runnig:
-    for x in range(0, window_x, square_size):
-        for y in range(0, window_y, square_size):
-            rect = pygame.Rect(x, y, square_size, square_size)
-            color = light_green if (x + y) % (square_size*2) < square_size else dark_green
-            pygame.draw.rect(game_window, color, rect)
-	
+
         # handling key events
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
