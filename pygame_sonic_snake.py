@@ -139,6 +139,8 @@ runnig = True
 # Main Function
 while runnig:
 
+	draw_damier()
+	
         # handling key events
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
